@@ -206,8 +206,17 @@ def main(sql_str):
     groupby_formatted = groupby_formatter(groupby_query)
     return select_formatted + from_formatted + where_formatted + groupby_formatted
 
+def capitalize_reserved_words(sql_str, reserved_words):
+    for reserved_word in reserved_words:
+        for i in range(0, len(sql_str)):
+            if re.search(reserved_word, sql_str[i], re.IGNORECASE):
+                pattern = re.compile(reserved_word, re.IGNORECASE)
+                sql_str[i] = pattern.sub(reserved_word, sql_str[i])
+    return sql_str
 
 sql_str = copy_clipboard().splitlines()
+reserved_words = ['SELECT', 'FROM', 'WHERE', 'GROUP BY']
+sql_str = capitalize_reserved_words(sql_str, reserved_words)
 var = main(sql_str)
 
 for i in var:
