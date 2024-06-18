@@ -9,6 +9,7 @@ comma_tab = '   ,'
 def copy_clipboard():
     time.sleep(3)
     pya.hotkey('ctrl', 'c')
+    print(pyperclip.paste())
     return pyperclip.paste()
 
 
@@ -186,12 +187,9 @@ def rreplace(s, old, new, occurrence):
     return new.join(line)
 
 
-def query_splitter(query):
-    start_select_index = sql_str.index('SELECT')
-    start_from_index = sql_str.index('FROM')
-    start_where_index = sql_str.index('WHERE')
-    start_groupby_index = sql_str.index('GROUP BY')
-    select_query = sql_str[start_select_index: start_from_index]
+def query_splitter(select_query):
+    test = re.split('(SELECT|FROM|WHERE|GROUP BY)', select_query)
+    select_query = sql_str.split("FROM", 1)
     from_query = sql_str[start_from_index: start_where_index]
     where_query = sql_str[start_where_index: start_groupby_index]
     groupby_query = sql_str[start_groupby_index: ]
@@ -208,13 +206,11 @@ def main(sql_str):
 
 def capitalize_reserved_words(sql_str, reserved_words):
     for reserved_word in reserved_words:
-        for i in range(0, len(sql_str)):
-            if re.search(reserved_word, sql_str[i], re.IGNORECASE):
-                pattern = re.compile(reserved_word, re.IGNORECASE)
-                sql_str[i] = pattern.sub(reserved_word, sql_str[i])
+        pattern = re.compile(reserved_word, re.IGNORECASE)
+        sql_str = pattern.sub(reserved_word, sql_str)
     return sql_str
 
-sql_str = copy_clipboard().splitlines()
+sql_str = copy_clipboard().replace("\r\n", " ")
 reserved_words = ['SELECT', 'FROM', 'WHERE', 'GROUP BY']
 sql_str = capitalize_reserved_words(sql_str, reserved_words)
 var = main(sql_str)
