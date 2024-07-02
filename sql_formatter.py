@@ -9,7 +9,6 @@ comma_tab = '   ,'
 def copy_clipboard():
     time.sleep(3)
     pya.hotkey('ctrl', 'c')
-    print(pyperclip.paste())
     return pyperclip.paste()
 
 
@@ -188,12 +187,23 @@ def rreplace(s, old, new, occurrence):
 
 
 def query_splitter(select_query):
-    test = re.split('(SELECT|FROM|WHERE|GROUP BY)', select_query)
-    select_query = sql_str.split("FROM", 1)
-    from_query = sql_str[start_from_index: start_where_index]
-    where_query = sql_str[start_where_index: start_groupby_index]
-    groupby_query = sql_str[start_groupby_index: ]
-    return select_query, from_query, where_query, groupby_query
+    string = select_query
+    select_query = re.search('^select.*(?=from )', str(string), re.IGNORECASE)
+    from_query = re.search('from.*(?=where )', str(string), re.IGNORECASE)
+    where_query = re.search('where.*(?=group by )', str(string), re.IGNORECASE)
+    groupby_query = re.search('group by.*', str(string), re.IGNORECASE)
+    print(select_query.group())
+    print(from_query.group())
+    print(where_query.group())
+    print(groupby_query.group())
+
+
+    # select_query = sql_str.split("FROM", 1)
+    # print(test1.group())
+    # from_query = sql_str[start_from_index: start_where_index]
+    # where_query = sql_str[start_where_index: start_groupby_index]
+    # groupby_query = sql_str[start_groupby_index: ]
+    return select_query.group(), from_query.group(), where_query.group(), groupby_query.group()
 
 
 def main(sql_str):
