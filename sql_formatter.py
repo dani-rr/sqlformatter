@@ -12,109 +12,109 @@ def copy_clipboard():
     return pyperclip.paste()
 
 
-def select_formatter(sql_str):
-    if sql_str and sql_str[0].lower() == 'select':
-        for line in range(0, len(sql_str)):
-            core_string, comment, position = comment_splitter(sql_str[line])
-            if line == 0:
-                sql_str[line] = sql_str[line].upper()
-            elif line == 1:
-                if position == 'pre':
-                    sql_str[line] = comment + tab + core_string
-                elif position == 'post':
-                    sql_str[line] = tab + core_string + ' ' + comment 
-                else:
-                    sql_str[line] = tab + core_string
-            else:
-                core_string = comma_formatter(core_string)
-                if position == 'pre':
-                    sql_str[line] = comment + comma_tab + core_string
-                elif position == 'post':
-                    sql_str[line] = comma_tab + core_string + ' ' + comment 
-                else:
-                    sql_str[line] = comma_tab + core_string
-        sql_str = as_formatter(sql_str)
-        return sql_str
-    else:
-        return None
+# def select_formatter(sql_str):
+#     if sql_str and sql_str[0].lower() == 'select':
+#         for line in range(0, len(sql_str)):
+#             core_string, comment, position = comment_splitter(sql_str[line])
+#             if line == 0:
+#                 sql_str[line] = sql_str[line].upper()
+#             elif line == 1:
+#                 if position == 'pre':
+#                     sql_str[line] = comment + tab + core_string
+#                 elif position == 'post':
+#                     sql_str[line] = tab + core_string + ' ' + comment 
+#                 else:
+#                     sql_str[line] = tab + core_string
+#             else:
+#                 core_string = comma_formatter(core_string)
+#                 if position == 'pre':
+#                     sql_str[line] = comment + comma_tab + core_string
+#                 elif position == 'post':
+#                     sql_str[line] = comma_tab + core_string + ' ' + comment 
+#                 else:
+#                     sql_str[line] = comma_tab + core_string
+#         sql_str = as_formatter(sql_str)
+#         return sql_str
+#     else:
+#         return None
 
 
-def from_formatter(from_str):
-    if from_str and from_str[0].lower() == 'from':
-        for line in range(0, len(from_str)):
-            core_string, comment, position = comment_splitter(from_str[line])
-            if line == 0:
-                from_str[line] = from_str[line].upper()
-            elif line == 1:
-                if position == 'pre':
-                    from_str[line] = comment + tab + core_string
-                elif position == 'post':
-                    from_str[line] = tab + core_string + ' ' + comment 
-                else:
-                    from_str[line] = tab + core_string
-            else:
-                core_string = comma_formatter(core_string)
-                if position == 'pre':
-                    from_str[line] = comment + comma_tab + core_string
-                elif position == 'post':
-                    from_str[line] = comma_tab + core_string + ' ' + comment 
-                else:
-                    from_str[line] = comma_tab + core_string
-        return from_str
-    else:
-        return from_str
+# def from_formatter(from_str):
+#     if from_str and from_str[0].lower() == 'from':
+#         for line in range(0, len(from_str)):
+#             core_string, comment, position = comment_splitter(from_str[line])
+#             if line == 0:
+#                 from_str[line] = from_str[line].upper()
+#             elif line == 1:
+#                 if position == 'pre':
+#                     from_str[line] = comment + tab + core_string
+#                 elif position == 'post':
+#                     from_str[line] = tab + core_string + ' ' + comment 
+#                 else:
+#                     from_str[line] = tab + core_string
+#             else:
+#                 core_string = comma_formatter(core_string)
+#                 if position == 'pre':
+#                     from_str[line] = comment + comma_tab + core_string
+#                 elif position == 'post':
+#                     from_str[line] = comma_tab + core_string + ' ' + comment 
+#                 else:
+#                     from_str[line] = comma_tab + core_string
+#         return from_str
+#     else:
+#         return from_str
      
 
-def where_formatter(where_str):
-    if where_str and where_str[0].lower() == 'where':
-        for line in range(0, len(where_str)):
-            core_string, comment, position = comment_splitter(where_str[line])
-            if line == 0:
-                where_str[line] = where_str[line].upper()
-            elif line == 1:
-                if position == 'pre':
-                    where_str[line] = comment + tab + core_string
-                elif position == 'post':
-                    where_str[line] = tab + core_string + ' ' + comment 
-                else:
-                    where_str[line] = tab + core_string
-            else:
-                if position == 'pre':
-                    where_str[line] = comment +  ' ' + core_string
-                elif position == 'post':
-                    where_str[line] = core_string + ' ' + comment 
-                else:
-                    where_str[line] = core_string
-        where_str = sub_where_formatter(where_str)
-        return where_str
-    else:
-        return where_str
+# def where_formatter(where_str):
+#     if where_str and where_str[0].lower() == 'where':
+#         for line in range(0, len(where_str)):
+#             core_string, comment, position = comment_splitter(where_str[line])
+#             if line == 0:
+#                 where_str[line] = where_str[line].upper()
+#             elif line == 1:
+#                 if position == 'pre':
+#                     where_str[line] = comment + tab + core_string
+#                 elif position == 'post':
+#                     where_str[line] = tab + core_string + ' ' + comment 
+#                 else:
+#                     where_str[line] = tab + core_string
+#             else:
+#                 if position == 'pre':
+#                     where_str[line] = comment +  ' ' + core_string
+#                 elif position == 'post':
+#                     where_str[line] = core_string + ' ' + comment 
+#                 else:
+#                     where_str[line] = core_string
+#         where_str = sub_where_formatter(where_str)
+#         return where_str
+#     else:
+#         return where_str
 
 
-def groupby_formatter(groupby_str):
-    if groupby_str and groupby_str[0].lower() == 'group by':
-        for line in range(0, len(groupby_str)):
-            core_string, comment, position = comment_splitter(groupby_str[line])
-            if line == 0:
-                groupby_str[line] = groupby_str[line].upper()
-            elif line == 1:
-                if position == 'pre':
-                    groupby_str[line] = comment + tab + core_string
-                elif position == 'post':
-                    groupby_str[line] = tab + core_string + ' ' + comment 
-                else:
-                    groupby_str[line] = tab + core_string
-            else:
-                core_string = comma_formatter(core_string)
-                if position == 'pre':
-                    groupby_str[line] = comment + comma_tab + core_string
-                elif position == 'post':
-                    groupby_str[line] = comma_tab + core_string + ' ' + comment 
-                else:
-                    groupby_str[line] = comma_tab + core_string
-        return groupby_str
-    else:
-        return groupby_str
+# def groupby_formatter(groupby_str):
+#     if groupby_str and groupby_str[0].lower() == 'group by':
+#         for line in range(0, len(groupby_str)):
+#             core_string, comment, position = comment_splitter(groupby_str[line])
+#             if line == 0:
+#                 groupby_str[line] = groupby_str[line].upper()
+#             elif line == 1:
+#                 if position == 'pre':
+#                     groupby_str[line] = comment + tab + core_string
+#                 elif position == 'post':
+#                     groupby_str[line] = tab + core_string + ' ' + comment 
+#                 else:
+#                     groupby_str[line] = tab + core_string
+#             else:
+#                 core_string = comma_formatter(core_string)
+#                 if position == 'pre':
+#                     groupby_str[line] = comment + comma_tab + core_string
+#                 elif position == 'post':
+#                     groupby_str[line] = comma_tab + core_string + ' ' + comment 
+#                 else:
+#                     groupby_str[line] = comma_tab + core_string
+#         return groupby_str
+#     else:
+#         return groupby_str
     
 
 def as_formatter(asString):
@@ -220,11 +220,74 @@ def capitalize_reserved_words(sql_str, reserved_words):
         sql_str = pattern.sub(reserved_word, sql_str)
     return sql_str
 
-sql_str = copy_clipboard().replace("\r\n", " ")
+
+
+def select_formatter(sql_str):
+    result = []
+    parentheses = 0
+    current = ''
+    for char in sql_str:
+        if char == ',' and parentheses == 0:
+            if current.strip().upper().startswith('SELECT '):
+                select, rest = current.strip().split(' ', 1)
+                result.append(select)
+                result.append(rest)
+            else:
+                result.append(current.strip())
+            current = ''
+        elif char == '(':
+            parentheses += 1
+            current += char
+        elif char == ')':
+            parentheses -= 1
+            current += char
+        else:
+            current += char
+    if current:
+        if current.strip().upper().startswith('SELECT '):
+            select, rest = current.strip().split(' ', 1)
+            result.append(select)
+            result.append(rest)
+        else:
+            result.append(current.strip())
+    return result
+
+sql_str = copy_clipboard()
+sql_str = re.sub("\r\n| +", " ", sql_str)
 reserved_words = ['SELECT', 'FROM', 'WHERE', 'GROUP BY']
 sql_str = capitalize_reserved_words(sql_str, reserved_words)
 var = main(sql_str)
 
-for i in var:
-    print(i)
+print(sql_str)
 
+
+tt = re.split(" |,", sql_str)
+print(tt)
+
+
+"""
+SELECT
+2   AS Laufnummer
+   ,LBE.ArtikelID
+   ,LBE.ProfitKstId
+   ,LBE.BelieferungDatumId AS EreignisDatum
+   ,LBE.JahrMonatId  AS EreignisJahrMonatId
+   ,IBS.AktivDatum
+   ,IBS.AktivJahrMonat
+   ,1 AS PartnerSichtCode
+   ,MIN(COALESCE(HEP2.Datum-1,CAST('3000-01-01' AS DATE))) AS BisDatum  AS Menge
+FROM
+    {instancename}Work.{processcode}_101_Belieferung LBE
+WHERE
+    ART.SammelnrCode = 0
+AND ART.BestandCode  = 1
+AND FIL.ScanningSeit IS NOT NULL
+AND FIL.VertriebstypInternID/100 = 2
+GROUP BY
+    LBE.ArtikelID
+   ,LBE.ProfitKstId
+   ,LBE.BelieferungDatumId
+   ,LBE.JahrMonatId
+   ,IBS.AktivDatum
+   ,IBS.AktivJahrMonat
+"""
