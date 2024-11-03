@@ -1,0 +1,24 @@
+SELECT
+    2                                                      AS Laufnummer
+   ,LBE.ArtikelID
+   ,LBE.ProfitKstId
+   ,LBE.BelieferungDatumId                                 AS EreignisDatum
+   ,LBE.JahrMonatId                                        AS EreignisJahrMonatId
+   ,IBS.AktivDatum
+   ,IBS.AktivJahrMonat
+   ,1                                                      AS PartnerSichtCode
+   ,MIN(COALESCE(HEP2.Datum-1,CAST('3000-01-01' AS DATE))) AS BisDatum
+FROM
+    {instancename}Work.{processcode}_101_Belieferung LBE
+WHERE
+    ART.SammelnrCode            = 0
+AND RT.BestandCode              = 1
+AND IL.ScanningSeit            IS NOT NULL
+AND IL.VertriebstypInternID/100 = 2
+GROUP BY
+    LBE.ArtikelID
+   ,LBE.ProfitKstId
+   ,LBE.BelieferungDatumId
+   ,LBE.JahrMonatId
+   ,IBS.AktivDatum
+   ,IBS.AktivJahrMonat
