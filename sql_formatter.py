@@ -9,6 +9,7 @@ class SQLFormatter:
         self.comma_tab = '   ,'
         self.and_tab = 'AND '
         self.reserved_words = ['SELECT', 'FROM', 'WHERE', 'GROUP BY']
+        self.level = 0
         
     def copy_clipboard(self):
         time.sleep(3)
@@ -16,6 +17,10 @@ class SQLFormatter:
         return pyperclip.paste()
 
     def block_formatter(self, sql_str, reserved_word, sp_tab):
+        """
+        Applies formatting to splitted statements depending on the SELECT, FROM, WHERE, etc. part
+        of the statement.
+        """
         if sql_str and sql_str[0] == reserved_word:
             for line in range(0, len(sql_str)):
                 core_string, comment, position = self.comment_splitter(sql_str[line])
@@ -35,6 +40,9 @@ class SQLFormatter:
             return None
 
     def format_line_with_comment(self, core_string, comment, position, sp_tab):
+        """
+        Orders line with comments based on its position
+        """
         if position == 'pre':
             return comment + sp_tab + core_string
         elif position == 'post':
@@ -43,6 +51,9 @@ class SQLFormatter:
             return sp_tab + core_string
 
     def as_formatter(self, asString):
+        """
+        Aligns AS aliases on the same column level of SELECT statements
+        """
         if any(' AS ' in string for string in asString):
             line_str = {}
             for i in range(1, len(asString)):
@@ -69,6 +80,9 @@ class SQLFormatter:
 
 
     def where_formatter(self, subWhereString):
+        """
+        Aligns operators in the WHERE statements
+        """
         operators = ['<=', '>=', '=', '>', '<', 'IS NOT', 'IS']
         line_str = {}
         for operator in operators:
@@ -84,6 +98,9 @@ class SQLFormatter:
         return subWhereString
 
     def comment_splitter(self, comment_string):
+        """ 
+        Returns comment and its position in the statement
+        """
         if comment_string.lstrip()[-1] == '-':
             return comment_string, False, False
         if comment_string.lstrip()[0] == '/':
@@ -94,6 +111,9 @@ class SQLFormatter:
             return comment_string.strip(), False, False
 
     def extract_comment(self, comment_string, pattern, position):
+        """
+        Returns just the comment for a specific line
+        """
         match = re.search(pattern, comment_string)
         if position == 'pre':
             return comment_string[match.end():].strip(), match.group(0), 'pre'
@@ -101,6 +121,9 @@ class SQLFormatter:
             return comment_string[:match.start()].strip(), match.group(0), 'post'
 
     def capitalize_reserved_words(self, sql_str):
+        """
+        Capitalizes any given reserved word in SQL
+        """
         for word in self.reserved_words:
             pattern = re.compile(word, re.IGNORECASE)
             sql_str = pattern.sub(word, sql_str)
@@ -121,6 +144,10 @@ class SQLFormatter:
         return select_query, from_query, where_query, groupby_query
 
     def block_splitter(self, sql_str, reserved_word):
+        """
+        Splits a SELECT, WHERE, FROM, etc. block into lines using ',' or 'AND'
+        depending on the part of the statement
+        """
         result = []
         parentheses = 0
         current = ''
