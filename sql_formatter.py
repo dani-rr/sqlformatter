@@ -9,6 +9,7 @@ class SQLFormatter:
         self.comma_tab = '   ,'
         self.and_tab = 'AND '
         self.reserved_words = ['SELECT', 'FROM', 'WHERE', 'GROUP BY']
+        self.subqueries = []
         
     def copy_clipboard(self):
         time.sleep(3)
@@ -32,7 +33,7 @@ class SQLFormatter:
                     sql_str = self.where_formatter(sql_str)
             return sql_str
         else:
-            return None
+            return []
 
     def format_line_with_comment(self, core_string, comment, position, sp_tab):
         if position == 'pre':
@@ -106,12 +107,12 @@ class SQLFormatter:
             sql_str = pattern.sub(word, sql_str)
         return sql_str
 
-    def query_splitter(self, select_query):
+    def query_splitter(self, sql_str):
         """ Splits a SQL query into SELECT, FROM, WHERE, and GROUP BY sections """
-        select_query_match = re.search(r'^SELECT.*(?=FROM )', select_query, re.IGNORECASE)
-        from_query_match = re.search(r'FROM.*(?=WHERE )', select_query, re.IGNORECASE)
-        where_query_match = re.search(r'WHERE.*(?=GROUP BY )', select_query, re.IGNORECASE)
-        groupby_query_match = re.search(r'GROUP BY.*', select_query, re.IGNORECASE)
+        select_query_match = re.search(r'^SELECT.*?(?=FROM )', sql_str, re.IGNORECASE)
+        from_query_match = re.search(r'FROM.*?(?=WHERE )|FROM.*', sql_str, re.IGNORECASE)
+        where_query_match = re.search(r'WHERE.*?(?=GROUP BY )|WHERE.*', sql_str, re.IGNORECASE)
+        groupby_query_match = re.search(r'GROUP BY.*', sql_str, re.IGNORECASE)
 
         select_query = select_query_match.group() if select_query_match else ""
         from_query = from_query_match.group() if from_query_match else ""
@@ -155,25 +156,62 @@ class SQLFormatter:
                 result.append(current.strip())
         return result
 
+    def format_nested_query(self, sql_str, indentation_level=0):
+        nested_query_pattern = r'\(\s*(SELECT.*?FROM.*?)\s*\)'
+        matches = re.finditer(nested_query_pattern, sql_str, re.IGNORECASE | re.DOTALL)
+        for match in matches:
+            subquery = match.group(1)
+            placeholder = f'(--SUBQUERY{len(self.subqueries)}--)'  # Unique placeholder
+            sql_str = sql_str.replace(match.group(0), placeholder)  # Replace subquery with placeholder
+            formatted_subquery = self.main(subquery.strip())  # Format the subquery recursively
+            self.subqueries.append((formatted_subquery, len(self.subqueries)))
+        return sql_str
+
+    def replace_placeholders_in_formatted_query(self, query_formatted):
+        formatted_with_subqueries = []
+        for line in query_formatted:
+            for formatted_subquery, subquery_id in self.subqueries:
+                placeholder = f'(--SUBQUERY{subquery_id}--)'
+                if placeholder in line:
+                    # Calculate the current indentation level of the placeholder
+                    indent = ' ' * line.index('(')
+                    # Indent each line of the subquery properly
+                    indented_subquery_lines = [indent + subline for subline in formatted_subquery]
+                    # Join the indented lines and wrap them with parentheses
+                    indented_subquery = "\n".join(indented_subquery_lines)
+                    line = line.replace(placeholder, f'(\n{indented_subquery}\n)')
+            formatted_with_subqueries.append(line)
+        return formatted_with_subqueries
+
     def main(self, sql_str):
         sql_str = re.sub("\r\n| +", " ", sql_str)
         sql_str = self.capitalize_reserved_words(sql_str)
+        sql_str = self.format_nested_query(sql_str)  # Process nested subqueries
+
+        # Split the query into sections and format each section
         select_query, from_query, where_query, groupby_query = self.query_splitter(sql_str)
         select_formatted = self.block_formatter(self.block_splitter(select_query, 'SELECT'), 'SELECT', self.comma_tab)
         from_formatted = self.block_formatter(self.block_splitter(from_query, 'FROM'), 'FROM', self.comma_tab)
         where_formatted = self.block_formatter(self.block_splitter(where_query, 'WHERE'), 'WHERE', self.and_tab)
         groupby_formatted = self.block_formatter(self.block_splitter(groupby_query, 'GROUP BY'), 'GROUP BY', self.comma_tab)
-        
-        return select_formatted + from_formatted + where_formatted + groupby_formatted
+
+        # Combine formatted sections into the full query
+        query_formatted = select_formatted + from_formatted + where_formatted + groupby_formatted
+
+        # Replace placeholders in the formatted query
+        query_formatted = self.replace_placeholders_in_formatted_query(query_formatted)
+
+        return query_formatted
 
 
 sql_formatter = SQLFormatter()
-sql_str = 'SELECT\r\n2   AS Laufnummer\r\n   ,LBE.ArtikelID\r\n   ,LBE.ProfitKstId\r\n   ,LBE.BelieferungDatumId AS EreignisDatum\r\n   ,LBE.JahrMonatId  AS EreignisJahrMonatId\r\n   ,IBS.AktivDatum\r\n   ,IBS.AktivJahrMonat\r\n   ,1 AS PartnerSichtCode\r\n   ,MIN(COALESCE(HEP2.Datum-1,CAST(\'3000-01-01\' AS DATE))) AS BisDatum\r\nFROM\r\n    {instancename}Work.{processcode}_101_Belieferung LBE\r\nWHERE\r\n    ART.SammelnrCode = 0\r\nAND ART.BestandCode  = 1\r\nAND FIL.ScanningSeit IS NOT NULL\r\nAND FIL.VertriebstypInternID/100 = 2\r\nGROUP BY\r\n    LBE.ArtikelID\r\n   ,LBE.ProfitKstId\r\n   ,LBE.BelieferungDatumId\r\n   ,LBE.JahrMonatId\r\n   ,IBS.AktivDatum\r\n   ,IBS.AktivJahrMonat\r\n'
+# sql_str = 'SELECT\r\n2   AS Laufnummer\r\n   ,LBE.ArtikelID\r\n   ,LBE.ProfitKstId\r\n   ,LBE.BelieferungDatumId AS EreignisDatum\r\n   ,LBE.JahrMonatId  AS EreignisJahrMonatId\r\n   ,IBS.AktivDatum\r\n   ,IBS.AktivJahrMonat\r\n   ,1 AS PartnerSichtCode\r\n   ,MIN(COALESCE(HEP2.Datum-1,CAST(\'3000-01-01\' AS DATE))) AS BisDatum\r\nFROM\r\n    {instancename}Work.{processcode}_101_Belieferung LBE\r\nWHERE\r\n    ART.SammelnrCode = 0\r\nAND ART.BestandCode  = 1\r\nAND FIL.ScanningSeit IS NOT NULL\r\nAND FIL.VertriebstypInternID/100 = 2\r\nGROUP BY\r\n    LBE.ArtikelID\r\n   ,LBE.ProfitKstId\r\n   ,LBE.BelieferungDatumId\r\n   ,LBE.JahrMonatId\r\n   ,IBS.AktivDatum\r\n   ,IBS.AktivJahrMonat\r\n'
+sql_str = 'SELECT\r\n  0 AS Laufnummer\r\n , HBI.ArtikelID\r\n , HBI.FilialeID\r\n , HBI.BestandesDatum AS EreignisDatum\r\n , HBI.Jahrmonat AS EreignisJahrmonat\r\n , HBI.ZusatzDatum AS AktivDatum\r\n , HBI.ZusatzJahrmonat AS AktivJahrmonat\r\n , HBI.PartnerSichtCode\r\n , SUM(HBI.Menge) AS Menge\r\nFROM\r\n(\r\nSELECT\r\n  HBI.ArtikelID\r\n , HBI.FilialeID\r\n , HBI.BestandesDatum\r\n , HBI.Jahrmonat\r\n , IBS.ZusatzDatum /* initialization active date */\r\n , IBS.ZusatzJahrmonat\r\n , HBI.PartnerSichtCode\r\n , SUM(HBI.Menge) AS Menge\r\n , HBI.VerkaufspreisSOLL\r\nFROM\r\n  MDDZHProd.HistoryBestandIst HBI\r\n , MDDZHProd.InfoBestand IBS\r\nWHERE\r\n  IBS.AktivDatum < HBI.BestandesDatum\r\nAND IBS.ZusatzDatum >= HBI.BestandesDatum\r\nGROUP BY\r\n  HBI.ArtikelID\r\n , HBI.FilialeID\r\n , HBI.BestandesDatum\r\n , HBI.Jahrmonat\r\n , IBS.ZusatzDatum /* initialization active date */\r\n , IBS.ZusatzJahrmonat\r\n , HBI.PartnerSichtCode\r\n , HBI.VerkaufspreisSOLL\r\n) HBI'
 formatted_sql = sql_formatter.main(sql_str)
-# for i in formatted_sql:
-#     print(i)
+for i in formatted_sql:
+    print(i)
 
 
-with open("copy.txt", "w") as file:
-    for i in formatted_sql:
-        file.write(i + "\n")
+# with open("copy.txt", "w") as file:
+#     for i in formatted_sql:
+#         file.write(i + "\n")
